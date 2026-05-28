@@ -1,0 +1,59 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { Client, Prisma } from '@prisma/client';
+import { FindClients } from './interfaces/find-clients.interface';
+
+@Injectable()
+export class ClientsService {
+  constructor(private prismaService: PrismaService) {}
+
+  async create(name: string, inn?: string, notes?: string): Promise<Client> {
+    return this.prismaService.client.create({
+      data: { name, inn, notes },
+    });
+  }
+
+  async findAll(page: number, limit: number): Promise<FindClients> {
+    const [data, total] = await Promise.all([
+      this.prismaService.client.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prismaService.client.count(),
+    ]);
+
+    return { data, total, page, limit };
+  }
+
+  async findOne(id: string): Promise<Client | never> {
+    const client = await this.prismaService.client.findUnique({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with id ${id} not found`);
+    }
+
+    return client;
+  }
+
+  async update(params: {
+    id: string;
+    update: Prisma.ClientUpdateInput;
+  }): Promise<Client> {
+    const { id, update } = params;
+    return this.prismaService.client.update({ where: { id }, data: update });
+  }
+
+  async delete(id: string): Promise<Client> {
+    const client = await this.prismaService.client.findUnique({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with id ${id} not found`);
+    }
+
+    return this.prismaService.client.delete({ where: { id } });
+  }
+}
