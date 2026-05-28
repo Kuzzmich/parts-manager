@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Manager {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  phone        String?
+  name         String
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  searchLogs   SearchLog[]
+
+  @@map("managers")
+}
+
+model Client {
+  id        String      @id @default(uuid())
+  name      String
+  inn       String?     @unique  // ИНН для идентификации
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  contact   Contact?
+  equipment Equipment[]
+
+  @@map("clients")
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  clientId  String   @unique
+  name      String
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model Equipment {
+  id           String   @id @default(uuid())
+  clientId     String
+  brand        String   // Komatsu, Caterpillar, Hitachi...
+  model        String   // PC200, 320D...
+  year         Int?
+  serialNumber String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  parts        Part[]
+  searchLogs   SearchLog[]
+
+  @@map("equipment")
+}
+
+model Part {
+  id          String    @id @default(uuid())
+  equipmentId String
+  name        String    // Прокладка ГБЦ
+  partNumber  String?   // Артикул
+  category    String?   // Двигатель, Гидравлика, Ходовая...
+  brand       String?   // Оригинал или аналог
+  price       Decimal?  @db.Decimal(10, 2)
+  inStock     Boolean   @default(false)
+  notes       String?
+  addedById   String?   // какой менеджер добавил
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@map("parts")
+}
+
+model SearchLog {
+  id          String    @id @default(uuid())
+  managerId   String
+  equipmentId String?   // может быть поиск без привязки к технике
+  query       String    // что искал менеджер
+  result      String?   // что нашёл (артикул или заметка)
+  createdAt   DateTime  @default(now())
+
+  manager     Manager   @relation(fields: [managerId], references: [id])
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  @@map("search_logs")
+}
