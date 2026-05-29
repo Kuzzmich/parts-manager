@@ -65,6 +65,7 @@ model Equipment {
   notes        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
 
   client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   parts        Part[]

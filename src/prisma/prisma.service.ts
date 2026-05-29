@@ -23,49 +23,45 @@ export class PrismaService {
   }
 }
 
+const SOFT_DELETE_READ_OPS = ['findFirst', 'findUnique', 'findMany'];
+const SOFT_DELETE_FILTER_OPS = [
+  ...SOFT_DELETE_READ_OPS,
+  'update',
+  'updateMany',
+  'count',
+];
+
+function softDeleteMethod<T>(
+  this: T,
+  args: { where: Prisma.Args<T, 'update'>['where'] },
+) {
+  const ctx = Prisma.getExtensionContext(this);
+  return (ctx as any).update({
+    where: args.where,
+    data: { deletedAt: new Date() },
+  });
+}
+
+function softDeleteQueryHandler({ operation, args, query }: any) {
+  if (SOFT_DELETE_READ_OPS.includes(operation)) {
+    args.omit = { ...args.omit, deletedAt: true };
+  }
+  if (SOFT_DELETE_FILTER_OPS.includes(operation)) {
+    args.where = { ...args.where, deletedAt: null };
+  }
+  return query(args);
+}
+
 function createPrismaClient(adapter: PrismaPg) {
   const base = new PrismaClient({ adapter });
   return base.$extends({
     model: {
-      client: {
-        async softDelete<T>(
-          this: T,
-          args: { where: Prisma.Args<T, 'update'>['where'] },
-        ) {
-          const ctx = Prisma.getExtensionContext(this);
-          return (ctx as any).update({
-            where: args.where,
-            data: { deletedAt: new Date() },
-          });
-        },
-      },
+      client: { softDelete: softDeleteMethod },
+      equipment: { softDelete: softDeleteMethod },
     },
     query: {
-      client: {
-        async $allOperations({ operation, args, query }) {
-          // omit deletedAt from all queries
-          if (['findFirst', 'findUnique', 'findMany'].includes(operation)) {
-            (args as any).omit = {
-              ...((args as any).omit ?? {}),
-              deletedAt: true,
-            };
-          }
-
-          if (
-            [
-              'findFirst',
-              'findUnique',
-              'findMany',
-              'update',
-              'updateMany',
-              'count',
-            ].includes(operation)
-          ) {
-            (args as any).where = { ...(args as any).where, deletedAt: null };
-          }
-          return query(args);
-        },
-      },
+      client: { $allOperations: softDeleteQueryHandler },
+      equipment: { $allOperations: softDeleteQueryHandler },
     },
   });
 }
