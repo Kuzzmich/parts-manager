@@ -33,6 +33,7 @@ model Client {
   notes     String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
   contact   Contact?
   equipment Equipment[]

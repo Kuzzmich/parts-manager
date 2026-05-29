@@ -8,25 +8,25 @@ export class ClientsService {
   constructor(private prismaService: PrismaService) {}
 
   async create(name: string, inn?: string, notes?: string): Promise<Client> {
-    return this.prismaService.client.create({
+    return this.prismaService.db.client.create({
       data: { name, inn, notes },
     });
   }
 
   async findAll(page: number, limit: number): Promise<FindClients> {
     const [data, total] = await Promise.all([
-      this.prismaService.client.findMany({
+      this.prismaService.db.client.findMany({
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prismaService.client.count(),
+      this.prismaService.db.client.count(),
     ]);
 
     return { data, total, page, limit };
   }
 
   async findOne(id: string): Promise<Client | never> {
-    const client = await this.prismaService.client.findUnique({
+    const client = await this.prismaService.db.client.findUnique({
       where: { id },
     });
 
@@ -42,11 +42,11 @@ export class ClientsService {
     update: Prisma.ClientUpdateInput;
   }): Promise<Client> {
     const { id, update } = params;
-    return this.prismaService.client.update({ where: { id }, data: update });
+    return this.prismaService.db.client.update({ where: { id }, data: update });
   }
 
   async delete(id: string): Promise<Client> {
-    const client = await this.prismaService.client.findUnique({
+    const client = await this.prismaService.db.client.findUnique({
       where: { id },
     });
 
@@ -54,6 +54,6 @@ export class ClientsService {
       throw new NotFoundException(`Client with id ${id} not found`);
     }
 
-    return this.prismaService.client.delete({ where: { id } });
+    return this.prismaService.db.client.softDelete({ where: { id } });
   }
 }

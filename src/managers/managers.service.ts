@@ -7,7 +7,7 @@ export class ManagersService {
   constructor(private prismaService: PrismaService) {}
 
   async findByEmail(email: string): Promise<Manager | null> {
-    return this.prismaService.manager.findUnique({
+    return this.prismaService.db.manager.findUnique({
       where: { email },
     });
   }

@@ -29,7 +29,7 @@ export class AuthService {
     }
 
     const passwordHash = await hash(password, 10);
-    const manager: Manager = await this.prismaService.manager.create({
+    const manager: Manager = await this.prismaService.db.manager.create({
       data: { email, passwordHash, name } satisfies Prisma.ManagerCreateInput,
     });
 
