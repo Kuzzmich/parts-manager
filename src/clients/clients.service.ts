@@ -42,7 +42,22 @@ export class ClientsService {
     update: Prisma.ClientUpdateInput;
   }): Promise<Client> {
     const { id, update } = params;
-    return this.prismaService.db.client.update({ where: { id }, data: update });
+
+    try {
+      return this.prismaService.db.client.update({
+        where: { id },
+        data: update,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Equipment with id ${id} not found`);
+      }
+
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<Client> {
