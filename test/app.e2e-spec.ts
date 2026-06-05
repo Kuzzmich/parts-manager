@@ -2,9 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { asyncWrapProviders } from 'node:async_hooks';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -204,5 +203,108 @@ describe('Equipment (e2e)', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(getRes.status).toBe(404);
+  });
+});
+
+describe('Part (e2e)', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let token: string;
+  let clientId: string;
+  let equipmentId: string;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    await app.init();
+
+    prisma = moduleFixture.get<PrismaService>(PrismaService);
+  });
+
+  beforeEach(async () => {
+    // очищаем таблицы перед каждым тестом
+    await prisma.db.equipment.deleteMany();
+    await prisma.db.part.deleteMany();
+    await prisma.db.client.deleteMany();
+    await prisma.db.manager.deleteMany();
+
+    const authRes = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ email: 'test@test.com', password: '123456', name: 'Test' });
+
+    token = authRes.body.access_token;
+
+    const clientRes = await request(app.getHttpServer())
+      .post('/clients')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Test Client' });
+
+    clientId = clientRes.body.id;
+
+    const equipmentRes = await request(app.getHttpServer())
+      .post(`/clients/${clientId}/equipment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        clientId,
+        brand: 'Kamatsu',
+        model: 'PC200',
+        year: 2020,
+        serialNumber: '1234567890',
+        notes: 'Good condition',
+      });
+
+    equipmentId = equipmentRes.body.id;
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('create part', async () => {
+    const part = {
+      name: 'Головка блока цилиндров',
+    };
+
+    const createRes = await request(app.getHttpServer())
+      .post(`/clients/${clientId}/equipment/${equipmentId}/parts`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(part);
+
+    expect(createRes.status).toBe(201);
+  });
+
+  it('should return 404 for non deleted part', async () => {
+    const part = {
+      name: 'Головка блока цилиндров',
+    };
+
+    const createRes = await request(app.getHttpServer())
+      .post(`/clients/${clientId}/equipment/${equipmentId}/parts`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(part);
+
+    const partId = createRes.body.id;
+
+    const deleteRes = await request(app.getHttpServer())
+      .delete(`/clients/${clientId}/equipment/${equipmentId}/parts/${partId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    const getRes = await request(app.getHttpServer())
+      .get(`/clients/${clientId}/equipment/${equipmentId}/parts/${partId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(getRes.status).toBe(404);
+  });
+
+  it('should return 404 for non deleting existing part', async () => {
+    const deleteRes = await request(app.getHttpServer())
+      .delete(`/clients/${clientId}/equipment/${equipmentId}/parts/999`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(deleteRes.status).toBe(404);
   });
 });

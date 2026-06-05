@@ -58,10 +58,12 @@ function createPrismaClient(adapter: PrismaPg) {
     model: {
       client: { softDelete: softDeleteMethod },
       equipment: { softDelete: softDeleteMethod },
+      part: { softDelete: softDeleteMethod },
     },
     query: {
       client: { $allOperations: softDeleteQueryHandler },
       equipment: { $allOperations: softDeleteQueryHandler },
+      part: { $allOperations: softDeleteQueryHandler },
     },
   });
 }
