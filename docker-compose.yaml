@@ -60,3 +60,4 @@ volumes:
   postgres_data:
   redis_data:
   kafka_data:
+  postgres_test_data:
