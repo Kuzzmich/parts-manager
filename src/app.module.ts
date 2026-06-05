@@ -11,6 +11,7 @@ import { SearchLogModule } from './search-log/search-log.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { KafkaModule } from './kafka/kafka.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { KafkaModule } from './kafka/kafka.module';
     EquipmentModule,
     PartsModule,
     SearchLogModule,
+    ContactsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
