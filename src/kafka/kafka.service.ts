@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class KafkaService {
   private kafka!: Kafka;
   private producer!: Producer;
+
+  constructor(private config: ConfigService) {}
 
   async onModuleInit() {
     this.kafka = new Kafka({
@@ -46,9 +49,11 @@ export class KafkaService {
   createConsumer(groupId: string): Consumer {
     return this.kafka.consumer({
       groupId,
-      sessionTimeout: 6000, // dev sped up need
-      heartbeatInterval: 1000,
-      rebalanceTimeout: 1000,
+      sessionTimeout: this.config.get<number>('KAFKA_SESSION_TIMEOUT') ?? 30000,
+      heartbeatInterval:
+        this.config.get<number>('KAFKA_HEARTBEAT_INTERVAL') ?? 3000,
+      rebalanceTimeout:
+        this.config.get<number>('KAFKA_REBALANCE_TIMEOUT') ?? 60000,
     });
   }
 }
