@@ -16,7 +16,9 @@ import { FindEquipmentDto } from './dto/find-equipment.dto';
 import { FindEquipment } from './interfaces/find-equipment.interface';
 import { UpdateEquipmentDto } from './dto/update-equipment.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('clients/:clientId/equipment')
 export class EquipmentController {

@@ -13,7 +13,9 @@ import { CreateContactDto } from './dto/create-contact.dto';
 import { Contact } from '@prisma/client';
 import { ContactsService } from './contacts.service';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('/clients/:clientId/contact')
 export class ContactsController {

@@ -16,7 +16,9 @@ import { Part } from '@prisma/client';
 import { FindPartDto } from './dto/find-part.dto';
 import { FindPart } from './interfaces/find-part.interface';
 import { UpdatePartDto } from './dto/update-part.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('/clients/:clientId/equipment/:equipmentId/parts')
 export class PartsController {

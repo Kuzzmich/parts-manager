@@ -16,7 +16,9 @@ import { FindClientsDto } from './dto/find-clients.dto';
 import { Client } from '@prisma/client';
 import { FindClients } from './interfaces/find-clients.interface';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('clients')
 export class ClientsController {
