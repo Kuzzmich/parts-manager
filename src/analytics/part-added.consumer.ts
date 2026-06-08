@@ -26,17 +26,26 @@ export class PartAddedConsumer implements OnModuleInit, OnModuleDestroy {
 
     await this.consumer.run({
       eachMessage: async ({ message }) => {
-        if (!message.value) return;
-        const value = JSON.parse(message.value.toString());
+        try {
+          if (!message.value) return;
+          const value = JSON.parse(message.value.toString());
 
-        // idempotence
-        const alreadyProcessed = await this.redisService.get(
-          `processed:part:${value.id}`,
-        );
-        if (alreadyProcessed) return;
+          // idempotence
+          const alreadyProcessed = await this.redisService.get(
+            `processed:part:${value.id}`,
+          );
+          if (alreadyProcessed) return;
 
-        await this.redisService.set(`processed:part:${value.id}`, '1', 3600);
-        console.log('Received message:', value);
+          await this.redisService.set(`processed:part:${value.id}`, '1', 3600);
+          console.log('Received message:', value);
+        } catch (e) {
+          const error = e as Error;
+          await this.kafkaService.emit(KafkaTopics.PART_ADDED_DLQ, {
+            originalMessage: JSON.parse(message.value!.toString()),
+            error: error.message,
+            failedAt: new Date().toISOString(),
+          });
+        }
       },
     });
   }
