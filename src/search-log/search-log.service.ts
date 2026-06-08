@@ -5,6 +5,7 @@ import { KafkaService } from '../kafka/kafka.service';
 import { CreateSearchLogDto } from './dto/create-search-log.dto';
 import { Prisma, SearchLog } from '@prisma/client';
 import { FindSearchLogs } from './dto/interfaces/find-search-logs.interface';
+import { KafkaTopics } from '../kafka/kafka.topics';
 
 @Injectable()
 export class SearchLogService {
@@ -25,7 +26,7 @@ export class SearchLogService {
         data: { managerId, query, equipmentId },
       });
 
-      await this.kafkaService.emit('search-log', {
+      await this.kafkaService.emit(KafkaTopics.SEARCH_LOG, {
         searchLogId: log.id,
         managerId,
         query,

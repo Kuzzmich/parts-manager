@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Consumer } from 'kafkajs';
 import { KafkaService } from '../kafka/kafka.service';
 import { RedisService } from '../redis/redis.service';
+import { KafkaTopics } from '../kafka/kafka.topics';
 
 @Injectable()
 export class AnalyticsConsumer implements OnModuleInit, OnModuleDestroy {
@@ -16,7 +17,7 @@ export class AnalyticsConsumer implements OnModuleInit, OnModuleDestroy {
     this.consumer = this.kafkaService.createConsumer('analytics-group');
     await this.consumer.connect();
     await this.consumer.subscribe({
-      topic: 'search-log',
+      topic: KafkaTopics.SEARCH_LOG,
       fromBeginning: false,
     });
 

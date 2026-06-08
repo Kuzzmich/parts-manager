@@ -3,10 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartDto } from './dto/create-part.dto';
 import { Equipment, Part, Prisma } from '@prisma/client';
 import { FindPart } from './interfaces/find-part.interface';
+import { KafkaService } from '../kafka/kafka.service';
+import { KafkaTopics } from '../kafka/kafka.topics';
 
 @Injectable()
 export class PartsService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private kafkaService: KafkaService,
+  ) {}
 
   async create(
     equipmentId: string,
@@ -20,9 +25,13 @@ export class PartsService {
       throw new NotFoundException(`Equipment with id ${equipmentId} not found`);
     }
 
-    return this.prismaService.db.part.create({
+    const part: Part = await this.prismaService.db.part.create({
       data: { equipmentId, ...payload },
     });
+
+    await this.kafkaService.emit(KafkaTopics.PART_ADDED, part);
+
+    return part;
   }
 
   async findAll(

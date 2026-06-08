@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
 import { ConfigService } from '@nestjs/config';
+import { KafkaTopics } from './kafka.topics';
 
 @Injectable()
 export class KafkaService {
@@ -21,17 +22,18 @@ export class KafkaService {
     const admin = this.kafka.admin();
     await admin.connect();
     const existingTopics = await admin.listTopics();
-    if (!existingTopics.includes('search-log')) {
+
+    const topicsToCreate = Object.values(KafkaTopics)
+      .filter((topic) => !existingTopics.includes(topic))
+      .map((topic) => ({ topic, numPartitions: 1 }));
+
+    if (topicsToCreate.length > 0) {
       await admin.createTopics({
-        topics: [
-          {
-            topic: 'search-log',
-            numPartitions: 1,
-          },
-        ],
+        topics: topicsToCreate,
         waitForLeaders: true,
       });
     }
+
     await admin.disconnect();
   }
 

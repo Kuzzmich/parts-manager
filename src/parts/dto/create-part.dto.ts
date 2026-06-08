@@ -1,4 +1,10 @@
-import { IsBoolean, IsDecimal, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsBoolean,
+  IsDecimal,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Decimal } from '@prisma/client/runtime/client';
 
@@ -17,7 +23,7 @@ export class CreatePartDto {
 
   @IsOptional()
   @Type(() => Decimal)
-  @IsDecimal()
+  @IsNumber()
   price?: number;
 
   @Type(() => Boolean)
