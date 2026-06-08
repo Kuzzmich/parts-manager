@@ -33,16 +33,29 @@ export class RedisService {
 
   async setJson(key: string, value: unknown, ttl?: number) {
     const str = JSON.stringify(value);
-    if (ttl) {
-      return this.client.setex(key, ttl, str);
-    }
-
-    return this.client.set(key, str);
+    return this.set(key, str, ttl);
   }
 
   async getJson<T>(key: string): Promise<T | null> {
-    const raw = await this.client.get(key);
+    const raw = await this.get(key);
     if (!raw) return null;
     return JSON.parse(raw) as T;
+  }
+
+  async incr(key: string): Promise<number> {
+    return this.client.incr(key);
+  }
+
+  async zincrby(
+    key: string,
+    member: string,
+    increment: number,
+  ): Promise<number> {
+    const result = await this.client.zincrby(key, increment, member);
+    return Number(result);
+  }
+
+  async zrevrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.zrevrange(key, start, stop);
   }
 }
