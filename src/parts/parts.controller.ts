@@ -17,6 +17,7 @@ import { FindPartDto } from './dto/find-part.dto';
 import { FindPart } from './interfaces/find-part.interface';
 import { UpdatePartDto } from './dto/update-part.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -33,7 +34,7 @@ export class PartsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Part | never> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Part | never> {
     return this.partsService.findOne(id);
   }
 
@@ -47,14 +48,14 @@ export class PartsController {
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePartDto,
   ): Promise<Part | never> {
     return this.partsService.update(id, dto);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<Part | never> {
+  delete(@Param('id', ParseUUIDPipe) id: string): Promise<Part | never> {
     return this.partsService.delete(id);
   }
 }

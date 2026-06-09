@@ -18,6 +18,7 @@ import { SearchLog } from '@prisma/client';
 import { FindSearchLogs } from './dto/interfaces/find-search-logs.interface';
 import { UpdateSearchLogDto } from './dto/update-search-log.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -48,7 +49,7 @@ export class SearchLogController {
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateSearchLogDto,
   ): Promise<SearchLog | never> {
     return this.searchLogService.update(id, dto);

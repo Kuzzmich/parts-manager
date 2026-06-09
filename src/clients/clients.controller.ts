@@ -17,6 +17,7 @@ import { Client } from '@prisma/client';
 import { FindClients } from './interfaces/find-clients.interface';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ParseUUIDPipe } from '../common/pipes/parse-uuid.pipe';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -35,20 +36,20 @@ export class ClientsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Client | null> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Client | null> {
     return this.clientsService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateClientDto,
   ): Promise<Client> {
     return this.clientsService.update({ id: id, update: dto });
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<Client> {
+  delete(@Param('id', ParseUUIDPipe) id: string): Promise<Client> {
     return this.clientsService.delete(id);
   }
 }
