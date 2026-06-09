@@ -17,6 +17,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   // app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // for dev purposes
+  app.enableCors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+  });
+
   SwaggerModule.setup('api', app, document);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
