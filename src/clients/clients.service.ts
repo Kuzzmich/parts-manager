@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Client, Prisma } from '@prisma/client';
 import { FindClients } from './interfaces/find-clients.interface';
@@ -8,9 +12,19 @@ export class ClientsService {
   constructor(private prismaService: PrismaService) {}
 
   async create(name: string, inn?: string, notes?: string): Promise<Client> {
-    return this.prismaService.db.client.create({
-      data: { name, inn, notes },
-    });
+    try {
+      return await this.prismaService.db.client.create({
+        data: { name, inn, notes },
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2002') {
+        throw new ConflictException('Клиент с таким ИНН уже существует');
+      }
+      {
+        throw new NotFoundException(`Client with name ${name} already exists`);
+      }
+      throw e;
+    }
   }
 
   async findAll(page: number, limit: number): Promise<FindClients> {
